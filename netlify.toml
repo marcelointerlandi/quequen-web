@@ -1,0 +1,21 @@
+# netlify.toml
+# Este archivo le dice a Netlify cómo manejar las rutas del sitio.
+
+[build]
+  # Carpeta raíz del sitio (donde está el index.html)
+  publish = "."
+  # Carpeta donde están las funciones serverless
+  functions = "netlify/functions"
+
+# Redirige /actividad/CUALQUIER_ID a la función serverless
+# Esto intercepta el link ANTES de que WhatsApp/Facebook lo procese
+[[redirects]]
+  from = "/actividad/:id"
+  to   = "/.netlify/functions/actividad/:id"
+  status = 200
+
+# Todo lo demás sigue funcionando normal (el SPA con hash)
+[[redirects]]
+  from = "/*"
+  to   = "/index.html"
+  status = 200

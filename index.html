@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partido Justicialista de Necochea, Unidad Básica Quequén</title>
+    <meta name="description" content="La UB de Quequén del Partido Justicialista de Necochea, comprometida con el bienestar de nuestra comunidad.">
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="Partido Justicialista de Necochea, Unidad Básica Quequén">
+    <meta property="og:description" content="La UB de Quequén del Partido Justicialista de Necochea, comprometida con el bienestar de nuestra comunidad.">
+    <meta property="og:url"         content="https://pjquequenense.com.ar">
+    <meta property="og:image"       content="">
+    <meta name="twitter:card"       content="summary_large_image">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+    /* =============================================
+       DESIGN TOKENS
+    ============================================= */
+    :root {
+        --azul:        #003366;
+        --azul-med:    #004d99;
+        --celeste:     #75aadb;
+        --celeste-lt:  #d6e8f7;
+        --blanco:      #ffffff;
+        --gris-bg:     #f4f6f9;
+        --gris-borde:  #dde3ea;
+        --texto:       #1a2332;
+        --texto-suave: #5a6a7e;
+        --rojo:        #dc3545;
+        --verde:       #28a745;
+        --font-display: 'Playfair Display', Georgia, serif;
+        --font-body:    'Source Sans 3', 'Segoe UI', sans-serif;
+        --sombra-sm:   0 2px 8px rgba(0,51,102,.08);
+        --sombra-md:   0 6px 24px rgba(0,51,102,.12);
+        --sombra-lg:   0 16px 48px rgba(0,51,102,.18);
+        --radio:       10px;
+        --trans:       0.22s ease;
+    }
+
+    body { font-family: var(--font-body); color: var(--texto); background: var(--gris-bg); }
+
+    /* =============================================
+       NAVBAR
+    ============================================= */
+    .navbar {
+        background: var(--azul);
+        padding: .9rem 2rem;
+        position: fixed; width: 100%; top: 0; z-index: 1000;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,.25);
+        border-bottom: 2px solid var(--celeste);
+    }
+    .logo {
+        color: var(--blanco);
+        font-family: var(--font-display);
+        font-size: 1.35rem; font-weight: 700;
+    }
+    .nav-links { display: flex; gap: .5rem; }
+    .nav-links a {
+        color: rgba(255,255,255,.85);
+        font-size: .9rem; font-weight: 500;
+        padding: .45rem .9rem; border-radius: 6px;
+        text-decoration: none;
+        transition: background var(--trans), color var(--trans);
+    }
+    .nav-links a:hover { background: rgba(117,170,219,.25); color: #fff; }
+
+    /* =============================================
+       HERO
+    ============================================= */
+    .hero {
+        min-height: 72vh;
+        background: linear-gradient(135deg, #00234d 0%, #003366 45%, #005599 100%);
+        display: flex; align-items: center; justify-content: center;
+        text-align: center; color: white; margin-top: 60px;
+        position: relative; overflow: hidden;
+    }
+    .hero::before {
+        content:''; position:absolute; inset:0;
+        background: radial-gradient(ellipse at 70% 50%, rgba(117,170,219,.18) 0%, transparent 60%);
+    }
+    .hero-content { position:relative; z-index:1; padding:2rem; }
+    .hero-content h1 {
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem,5vw,3.2rem);
+        line-height: 1.15; margin-bottom: .6rem;
+        text-shadow: 0 2px 12px rgba(0,0,0,.3);
+    }
+    .hero-content h2 {
+        font-family: var(--font-display);
+        font-size: clamp(1.1rem,3vw,1.8rem); font-weight: 700;
+        color: var(--celeste); margin-bottom: 1.5rem;
+    }
+    .hero-content button {
+        padding: .85rem 2.2rem; font-family: var(--font-body);
+        font-size: 1rem; font-weight: 600;
+        background: white; color: var(--azul);
+        border: none; border-radius: 50px; cursor: pointer;
+        transition: transform var(--trans), box-shadow var(--trans);
+    }
+    .hero-content button:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.25); }
+
+    .hero-escudo {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        margin-bottom: 1.2rem;
+        filter: drop-shadow(0 4px 16px rgba(0,0,0,.4));
+        animation: fadeInUp 0.8s ease both;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =============================================
+       SECTION HELPERS
+    ============================================= */
+    .section-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem,4vw,2.4rem);
+        color: var(--azul); text-align: center; margin-bottom: .5rem;
+    }
+    .section-divider {
+        width: 50px; height: 3px; background: var(--celeste);
+        margin: .7rem auto 2rem; border-radius: 2px;
+    }
+
+    /* =============================================
+       INFO CARDS
+    ============================================= */
+    .info-card {
+        background: var(--blanco); border-radius: var(--radio);
+        padding: 2rem; box-shadow: var(--sombra-sm);
+        border-top: 3px solid var(--celeste);
+        transition: transform var(--trans), box-shadow var(--trans);
+    }
+    .info-card:hover { transform: translateY(-4px); box-shadow: var(--sombra-md); }
+    .info-card h3 { font-family: var(--font-display); font-size:1.25rem; color:var(--azul); margin-bottom:.9rem; }
+    .info-card p, .info-card li { color: var(--texto-suave); line-height: 1.7; }
+
+    /* =============================================
+       TARJETAS DE ACTIVIDAD
+    ============================================= */
+    .activities-section { padding: 4rem 2rem; background: var(--gris-bg); }
+    .activities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
+        gap: 1.75rem; max-width: 1200px; margin: 0 auto;
+    }
+    .activity-card {
+        background: var(--blanco); border-radius: var(--radio);
+        overflow: hidden; box-shadow: var(--sombra-sm);
+        cursor: pointer; display: flex; flex-direction: column;
+        border: 1px solid var(--gris-borde);
+        transition: transform var(--trans), box-shadow var(--trans);
+    }
+    .activity-card:hover { transform: translateY(-5px); box-shadow: var(--sombra-lg); }
+    .activity-image {
+        height: 200px; overflow: hidden;
+        background: var(--celeste-lt); position: relative;
+    }
+    .activity-image img {
+        width:100%; height:100%; object-fit:cover;
+        transition: transform .5s ease; display:block;
+    }
+    .activity-card:hover .activity-image img { transform: scale(1.05); }
+    .activity-video-badge {
+        position:absolute; top:10px; left:10px;
+        background:rgba(0,0,0,.65); color:white;
+        font-size:.75rem; font-weight:600;
+        padding:3px 9px; border-radius:20px;
+    }
+    .activity-content { padding:1.4rem; flex-grow:1; display:flex; flex-direction:column; }
+    .activity-content h3 {
+        font-family: var(--font-display);
+        font-size:1.15rem; color:var(--azul);
+        margin-bottom:.6rem; line-height:1.35;
+    }
+    .activity-description-preview {
+        color:var(--texto-suave); font-size:.9rem;
+        line-height:1.6; flex-grow:1; margin-bottom:.8rem;
+    }
+    .activity-footer {
+        display:flex; justify-content:space-between; align-items:center;
+        margin-top:auto; padding-top:.8rem;
+        border-top:1px solid var(--gris-borde);
+    }
+    .activity-date { color:var(--celeste); font-size:.8rem; font-weight:600; }
+    .activity-read-more { font-size:.82rem; font-weight:600; color:var(--azul); }
+    .activity-read-more::after { content:'→'; margin-left:3px; }
+
+    /* =============================================
+       MODAL DE ACTIVIDAD
+    ============================================= */
+    .activity-modal-overlay {
+        position:fixed; inset:0;
+        background:rgba(0,10,30,.85);
+        z-index:2000; display:flex; align-items:stretch;
+        animation: fadeIn .2s ease;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    .activity-modal {
+        background:var(--blanco);
+        width:100%; max-width:920px;
+        margin:auto; height:100vh;
+        display:flex; flex-direction:column; overflow:hidden;
+        animation: slideUp .3s cubic-bezier(.25,.46,.45,.94);
+    }
+    @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    .modal-topbar {
+        background:var(--azul);
+        border-bottom:2px solid var(--celeste);
+        padding:.75rem 1.5rem;
+        display:flex; align-items:center; justify-content:space-between;
+        flex-shrink:0;
+    }
+    .modal-topbar-logo {
+        color:white; font-family:var(--font-display);
+        font-size:1.1rem; font-weight:700;
+    }
+    .modal-close-btn {
+        background:rgba(255,255,255,.12);
+        border:1px solid rgba(255,255,255,.25);
+        color:white; width:36px; height:36px;
+        border-radius:50%; font-size:1.2rem;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        transition:background var(--trans);
+    }
+    .modal-close-btn:hover { background:rgba(220,53,69,.7); }
+
+    .modal-body { overflow-y:auto; flex-grow:1; }
+
+    /* Carrusel del modal */
+    .modal-media { background:#0a0a0a; position:relative; }
+    .modal-carrusel { overflow:hidden; position:relative; touch-action:pan-y; }
+    .modal-carrusel-track {
+        display:flex;
+        transition:transform .4s cubic-bezier(.25,.46,.45,.94);
+        will-change:transform;
+    }
+    .modal-carrusel-slide {
+        flex:0 0 100%; display:flex;
+        align-items:center; justify-content:center;
+        min-height:220px; max-height:50vh; background:#0a0a0a;
+    }
+    .modal-carrusel-slide img {
+        max-width:100%; max-height:50vh;
+        object-fit:contain; display:block; pointer-events:none;
+    }
+    .modal-carrusel-slide .video-embed {
+        width:100%; aspect-ratio:16/9; max-height:50vh;
+    }
+    .modal-carrusel-slide .video-embed iframe {
+        width:100%; height:100%; border:none; display:block;
+    }
+    .modal-carrusel-btn {
+        position:absolute; top:50%; transform:translateY(-50%);
+        background:rgba(255,255,255,.15); backdrop-filter:blur(4px);
+        border:1px solid rgba(255,255,255,.3);
+        color:white; width:40px; height:40px;
+        border-radius:50%; font-size:1.3rem;
+        cursor:pointer; z-index:10;
+        display:flex; align-items:center; justify-content:center;
+        transition:background var(--trans);
+    }
+    .modal-carrusel-btn:hover { background:var(--azul); }
+    .modal-carrusel-prev { left:10px; }
+    .modal-carrusel-next { right:10px; }
+    .modal-media-counter {
+        position:absolute; top:10px; right:12px;
+        background:rgba(0,0,0,.6); color:white;
+        font-size:.75rem; font-weight:700;
+        padding:3px 10px; border-radius:20px; z-index:10;
+        pointer-events:none;
+    }
+    .modal-thumbs {
+        display:flex; gap:6px; padding:8px 12px;
+        background:#161616; overflow-x:auto;
+        scrollbar-width:thin; scrollbar-color:#444 transparent;
+    }
+    .modal-thumbs::-webkit-scrollbar { height:3px; }
+    .modal-thumb {
+        flex-shrink:0; width:58px; height:42px;
+        border-radius:5px; overflow:hidden;
+        cursor:pointer; border:2px solid transparent;
+        opacity:.5; transition:opacity .2s, border-color .2s;
+        background:#333; display:flex; align-items:center; justify-content:center;
+        position:relative;
+    }
+    .modal-thumb.active { border-color:var(--celeste); opacity:1; }
+    .modal-thumb:hover { opacity:.85; }
+    .modal-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .modal-thumb.is-video { color:white; font-size:1.3rem; }
+
+    .modal-content-area { padding:2rem 2.5rem; }
+    .modal-title {
+        font-family:var(--font-display);
+        font-size:clamp(1.4rem,3vw,2rem);
+        color:var(--azul); line-height:1.25; margin-bottom:1rem;
+    }
+    .modal-meta {
+        display:flex; flex-wrap:wrap; align-items:center; gap:.8rem;
+        margin-bottom:1.5rem; padding-bottom:1.2rem;
+        border-bottom:2px solid var(--celeste-lt);
+    }
+    .modal-date { color:var(--celeste); font-size:.88rem; font-weight:600; }
+    .modal-share { display:flex; gap:.6rem; flex-wrap:wrap; margin-left:auto; }
+    .share-btn {
+        padding:.45rem 1rem; border:none; border-radius:6px;
+        font-size:.82rem; font-weight:600; cursor:pointer;
+        color:white; display:inline-flex; align-items:center; gap:.35rem;
+        transition:opacity var(--trans), transform var(--trans);
+        font-family:var(--font-body);
+    }
+    .share-btn:hover { opacity:.88; transform:translateY(-1px); }
+    .share-btn.fb { background:#1877f2; }
+    .share-btn.wa { background:#25d366; }
+    .share-btn.cp { background:var(--texto-suave); }
+    .copy-ok {
+        font-size:.78rem; color:var(--verde); font-weight:600;
+        display:none; margin-top:.3rem;
+    }
+    .modal-description {
+        color:var(--texto); font-size:1rem; line-height:1.8;
+        margin-bottom:2rem;
+    }
+    .modal-description img {
+        max-width:100%; border-radius:8px;
+        margin:1rem 0; display:block; box-shadow:var(--sombra-sm);
+    }
+    .modal-description img.img-chica   { max-width:220px; }
+    .modal-description img.img-mediana { max-width:460px; }
+
+    /* =============================================
+       GALERÍA
+    ============================================= */
+    .carrusel-section { padding:4rem 2rem; background:var(--blanco); }
+    .carrusel-container {
+        max-width:900px; margin:0 auto;
+        border-radius:var(--radio); overflow:hidden;
+        box-shadow:var(--sombra-lg); position:relative;
+    }
+    .carrusel-track { display:flex; transition:transform .5s ease; }
+    .carrusel-slide { flex:0 0 100%; position:relative; }
+    .carrusel-slide img { width:100%; max-height:520px; object-fit:cover; display:block; }
+    .carrusel-caption {
+        position:absolute; bottom:0; left:0; right:0;
+        background:linear-gradient(transparent,rgba(0,30,70,.8));
+        color:white; padding:2rem 1.2rem .9rem;
+        font-size:.95rem; font-weight:500;
+    }
+    .carrusel-btn {
+        position:absolute; top:50%; transform:translateY(-50%);
+        background:rgba(0,51,102,.65); backdrop-filter:blur(4px);
+        border:none; color:white;
+        width:44px; height:44px; border-radius:50%;
+        font-size:1.5rem; cursor:pointer; z-index:5;
+        display:flex; align-items:center; justify-content:center;
+        transition:background var(--trans);
+    }
+    .carrusel-btn:hover { background:var(--azul); }
+    .carrusel-prev { left:12px; }
+    .carrusel-next { right:12px; }
+    .carrusel-dots { display:flex; justify-content:center; gap:8px; margin-top:1rem; }
+    .carrusel-dot {
+        width:10px; height:10px; border-radius:50%;
+        background:var(--gris-borde); cursor:pointer;
+        transition:background var(--trans), transform var(--trans);
+    }
+    .carrusel-dot.active { background:var(--azul); transform:scale(1.2); }
+
+    /* =============================================
+       CONTACTO
+    ============================================= */
+    .contact-section { background:var(--gris-bg); padding:4rem 2rem; }
+    .contact-item {
+        background:var(--blanco); border-radius:var(--radio);
+        padding:2rem; text-align:center; box-shadow:var(--sombra-sm);
+        border-bottom:3px solid var(--celeste);
+        transition:transform var(--trans);
+    }
+    .contact-item:hover { transform:translateY(-3px); }
+    .contact-item h3 { font-family:var(--font-display); color:var(--azul); margin-bottom:.6rem; }
+    .contact-item p { color:var(--texto-suave); line-height:1.7; }
+    .contact-icon { font-size:2.2rem; margin-bottom:.8rem; }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    .footer {
+        background:var(--azul); color:rgba(255,255,255,.8);
+        text-align:center; padding:2.5rem 2rem;
+        border-top:3px solid var(--celeste);
+    }
+    .footer p { margin:.4rem 0; font-size:.9rem; }
+    .social-links { margin-top:.8rem; }
+    .social-links a {
+        color:var(--celeste); text-decoration:none;
+        margin:0 .8rem; font-size:.9rem; font-weight:500;
+        transition:color var(--trans);
+    }
+    .social-links a:hover { color:white; }
+
+    /* =============================================
+       ADMIN
+    ============================================= */
+    .admin-panel { max-width:1200px; margin:0 auto; padding:1.5rem; }
+    .admin-header {
+        background:var(--azul); color:white;
+        padding:1.2rem 1.8rem; border-radius:var(--radio);
+        display:flex; justify-content:space-between; align-items:center;
+        margin-bottom:1.2rem; box-shadow:var(--sombra-md);
+    }
+    .admin-header h1 { font-family:var(--font-display); font-size:1.3rem; }
+    .admin-header-btns { display:flex; gap:.6rem; }
+
+    .btn-admin {
+        padding:.5rem 1.1rem; border:none; border-radius:6px;
+        font-size:.88rem; font-weight:600; cursor:pointer;
+        font-family:var(--font-body);
+        transition:opacity var(--trans), transform var(--trans);
+    }
+    .btn-admin:hover { opacity:.88; transform:translateY(-1px); }
+    .btn-admin.verde { background:var(--verde); color:white; }
+    .btn-admin.gris  { background:rgba(255,255,255,.18); color:white; border:1px solid rgba(255,255,255,.3); }
+    .btn-admin.azul  { background:var(--celeste); color:var(--azul); }
+    .btn-admin.rojo  { background:var(--rojo); color:white; }
+    .btn-admin.warn  { background:#ffc107; color:#000; }
+    .btn-admin.gris2 { background:#6c757d; color:white; }
+
+    .admin-tabs {
+        display:flex; gap:.5rem; margin-bottom:1.2rem;
+        background:var(--blanco); padding:.5rem;
+        border-radius:var(--radio); box-shadow:var(--sombra-sm);
+    }
+    .admin-tab {
+        flex:1; padding:.7rem 1rem; border:none;
+        border-radius:7px; cursor:pointer; font-size:.92rem;
+        font-weight:500; font-family:var(--font-body);
+        color:var(--texto-suave); background:transparent;
+        transition:all var(--trans);
+    }
+    .admin-tab.active { background:var(--azul); color:white; font-weight:600; }
+    .admin-tab:hover:not(.active) { background:var(--celeste-lt); }
+
+    .admin-content { display:grid; grid-template-columns:340px 1fr; gap:1.2rem; }
+    .admin-card {
+        background:var(--blanco); border-radius:var(--radio);
+        padding:1.5rem; box-shadow:var(--sombra-sm);
+    }
+    .admin-card h2 {
+        font-family:var(--font-display); font-size:1.1rem; color:var(--azul);
+        margin-bottom:1.1rem; padding-bottom:.6rem;
+        border-bottom:2px solid var(--celeste-lt);
+        display:flex; justify-content:space-between; align-items:center;
+    }
+    .activity-count {
+        background:var(--celeste); color:white;
+        font-size:.75rem; font-weight:700;
+        padding:.2rem .6rem; border-radius:20px;
+        font-family:var(--font-body);
+    }
+
+    .form-group { margin-bottom:1rem; }
+    .form-group label {
+        display:block; font-size:.8rem; font-weight:700;
+        color:var(--texto-suave); margin-bottom:.35rem;
+        text-transform:uppercase; letter-spacing:.04em;
+    }
+    .form-group input, .form-group textarea {
+        width:100%; padding:.65rem .9rem;
+        border:1.5px solid var(--gris-borde); border-radius:7px;
+        font-size:.9rem; font-family:var(--font-body); color:var(--texto);
+        transition:border-color var(--trans), box-shadow var(--trans);
+        background:var(--blanco); box-sizing:border-box;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+        outline:none; border-color:var(--celeste);
+        box-shadow:0 0 0 3px rgba(117,170,219,.2);
+    }
+    .hint { font-size:.76rem; color:var(--texto-suave); margin-top:.3rem; line-height:1.4; }
+
+    /* Media section en admin */
+    .media-section {
+        border:1.5px dashed var(--gris-borde); border-radius:8px;
+        padding:1rem; margin-bottom:1rem; background:var(--gris-bg);
+    }
+    .media-section h3 {
+        font-size:.82rem; font-weight:700; color:var(--azul);
+        text-transform:uppercase; letter-spacing:.05em; margin-bottom:.8rem;
+    }
+    .media-preview-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:.7rem; }
+    .media-preview-item {
+        position:relative; width:76px; height:58px;
+        border-radius:6px; overflow:hidden;
+        border:2px solid var(--gris-borde); background:#eee;
+        display:flex; align-items:center; justify-content:center;
+    }
+    .media-preview-item img { width:100%; height:100%; object-fit:cover; display:block; }
+    .media-preview-item.is-video { background:#1a1a1a; color:white; font-size:1.4rem; }
+    .media-remove-btn {
+        position:absolute; top:-5px; right:-5px;
+        background:var(--rojo); color:white;
+        border:2px solid white; border-radius:50%;
+        width:20px; height:20px; font-size:.7rem;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        z-index:5;
+    }
+    .media-add-btn {
+        padding:.45rem .9rem; border:1.5px dashed var(--celeste);
+        border-radius:6px; background:var(--celeste-lt);
+        color:var(--azul); font-size:.82rem; font-weight:600;
+        cursor:pointer; font-family:var(--font-body);
+        transition:background var(--trans);
+    }
+    .media-add-btn:hover { background:#c2daf0; }
+
+    /* Rich editor */
+    .rich-editor-wrapper {
+        border:1.5px solid var(--gris-borde); border-radius:7px; overflow:hidden;
+        transition:border-color var(--trans);
+    }
+    .rich-editor-wrapper:focus-within { border-color:var(--celeste); box-shadow:0 0 0 3px rgba(117,170,219,.2); }
+    .rich-toolbar {
+        display:flex; flex-wrap:wrap; gap:3px;
+        padding:6px 8px; background:#f8f9fb;
+        border-bottom:1px solid var(--gris-borde);
+    }
+    .toolbar-btn {
+        padding:3px 8px; border:1px solid #ddd; border-radius:4px;
+        background:white; cursor:pointer; font-size:.78rem; color:#333;
+        transition:all .15s; line-height:1.5; font-family:var(--font-body);
+    }
+    .toolbar-btn:hover { background:var(--azul); color:white; border-color:var(--azul); }
+    .toolbar-btn.img-btn { background:var(--verde); color:white; border-color:var(--verde); }
+    .toolbar-btn.img-btn:hover { background:#1e7e34; }
+    .toolbar-sep { width:1px; background:#ddd; margin:2px 3px; align-self:stretch; }
+    #richEditor {
+        min-height:100px; max-height:240px; overflow-y:auto;
+        padding:10px 12px; outline:none;
+        font-size:.9rem; line-height:1.6; color:var(--texto);
+        font-family:var(--font-body);
+    }
+    #richEditor img { max-width:100%; border-radius:5px; margin:5px 0; display:block; }
+    #richEditor img.img-chica   { max-width:160px; }
+    #richEditor img.img-mediana { max-width:340px; }
+
+    /* Lista actividades admin */
+    .activities-list-scroll { max-height:560px; overflow-y:auto; }
+    .admin-activity-item {
+        display:flex; gap:.9rem; align-items:center;
+        padding:.8rem; border-radius:8px; margin-bottom:.5rem;
+        border:1px solid var(--gris-borde);
+        transition:background var(--trans);
+    }
+    .admin-activity-item:hover { background:var(--gris-bg); }
+    .admin-activity-item img {
+        width:64px; height:48px; object-fit:cover;
+        border-radius:6px; flex-shrink:0; display:block;
+    }
+    .admin-activity-thumb-video {
+        width:64px; height:48px; background:#111;
+        border-radius:6px; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.5rem; color:white; overflow:hidden; position:relative;
+    }
+    .admin-act-info { flex-grow:1; min-width:0; }
+    .admin-act-info h3 { font-size:.9rem; color:var(--azul); margin-bottom:.2rem; }
+    .admin-act-info p  { font-size:.78rem; color:var(--texto-suave); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .admin-act-actions { display:flex; gap:.35rem; flex-shrink:0; }
+
+    /* Galería admin */
+    .fotos-grid {
+        display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+        gap:.9rem; margin-top:.8rem;
+    }
+    .foto-item { border-radius:8px; overflow:hidden; box-shadow:var(--sombra-sm); border:1px solid var(--gris-borde); }
+    .foto-item img { width:100%; height:100px; object-fit:cover; display:block; }
+    .foto-info { padding:.6rem; background:var(--blanco); }
+    .foto-info input {
+        width:100%; padding:.3rem .5rem; font-size:.78rem;
+        border:1px solid var(--gris-borde); border-radius:4px;
+        margin-bottom:.4rem; box-sizing:border-box; font-family:var(--font-body);
+    }
+    .foto-actions { display:flex; gap:.3rem; }
+    .foto-actions button { flex:1; padding:.3rem; border:none; border-radius:4px; cursor:pointer; font-size:.72rem; font-family:var(--font-body); }
+    .foto-order { display:flex; gap:.3rem; margin-top:.3rem; }
+    .foto-order button { flex:1; padding:.25rem; border:1px solid var(--gris-borde); border-radius:4px; background:white; cursor:pointer; font-size:.75rem; }
+
+    .admin-alert { padding:.7rem 1rem; border-radius:7px; font-size:.85rem; margin-bottom:1rem; }
+    .admin-alert.warn { background:#fff3cd; color:#856404; border:1px solid #ffc107; }
+
+    /* Login */
+    .admin-login {
+        min-height:100vh; display:flex;
+        align-items:center; justify-content:center;
+        background:linear-gradient(135deg,#00234d,#003366);
+    }
+    .login-container {
+        background:white; padding:2.5rem; border-radius:var(--radio);
+        width:90%; max-width:360px; box-shadow:var(--sombra-lg);
+    }
+    .login-container h1 {
+        font-family:var(--font-display); color:var(--azul);
+        font-size:1.6rem; text-align:center; margin-bottom:1.5rem;
+    }
+    .login-container input {
+        width:100%; padding:.75rem 1rem;
+        border:1.5px solid var(--gris-borde); border-radius:7px;
+        font-size:.95rem; font-family:var(--font-body);
+        margin-bottom:.9rem; box-sizing:border-box;
+    }
+    .login-container input:focus { outline:none; border-color:var(--celeste); }
+    .login-container button {
+        width:100%; padding:.8rem; background:var(--azul);
+        color:white; border:none; border-radius:7px;
+        font-size:1rem; font-weight:600; cursor:pointer;
+        font-family:var(--font-body); transition:opacity var(--trans);
+    }
+    .login-container button:hover { opacity:.9; }
+    .login-error { color:var(--rojo); font-size:.88rem; text-align:center; margin-bottom:.8rem; display:none; }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width:768px) {
+        .admin-content { grid-template-columns:1fr; }
+        .modal-content-area { padding:1.4rem 1.2rem; }
+        .modal-carrusel-slide { max-height:35vh; }
+        .modal-carrusel-slide img { max-height:35vh; }
+        .modal-carrusel-slide .video-embed { max-height:35vh; }
+        .modal-share { justify-content:flex-start; }
+        .activities-grid { grid-template-columns:1fr; }
+        .hero-content button { font-size:.9rem; padding:.75rem 1.7rem; }
+        .nav-links { display:none; }
+        .hamburger { display:flex; }
+    }
+    @media (min-width:769px) {
+        .activity-modal { margin:1.5vh auto; height:97vh; border-radius:var(--radio); }
+    }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// =============================================
+// FIREBASE
+// =============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyD9160AzS9LU9dE6qK7hU2xCQoFPYn6KNM",
+    authDomain: "pj-quequen.firebaseapp.com",
+    projectId: "pj-quequen",
+    storageBucket: "pj-quequen.firebasestorage.app",
+    messagingSenderId: "1023950310443",
+    appId: "1:1023950310443:web:239d38dca2f1dfee87ee6e",
+};
+firebase.initializeApp(firebaseConfig);
+const db            = firebase.firestore();
+const activitiesCol = db.collection("activities");
+const fotosCol      = db.collection("carrusel_fotos");
+
+// =============================================
+// ESTADO
+// =============================================
+let currentPage     = "home";
+let isAuthenticated = false;
+let activities      = [];
+let fotosCarrusel   = [];
+let editingActivity = null;
+let adminTab        = "actividades";
+const MAX_ACT      = 9;
+const MAX_FEATURED = 6;
+const MAX_FOTO     = 15;
+
+// =============================================
+// DATOS DEMO (se usan cuando Firebase está vacío)
+// =============================================
+const DEMO_ACTIVITIES = [
+    {
+        id:"demo-1", title:"Jornada de Asistencia Alimentaria",
+        description:"<p>Realizamos una exitosa jornada de asistencia alimentaria en el barrio Norte de Quequén, donde entregamos más de 200 bolsones de alimentos a familias de nuestra comunidad. El evento contó con la participación de voluntarios y referentes del partido.</p><p>Gracias a la solidaridad de todos los vecinos, pudimos garantizar que ninguna familia se quedara sin alimentos básicos durante esta semana.</p>",
+        image:"https://picsum.photos/seed/pjq-social/800/500",
+        media:[{type:"img",url:"https://picsum.photos/seed/pjq-social/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-social2/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-social3/800/500"}],
+        date:"12 de abril de 2026", timestamp:1744416000000
+    },
+    {
+        id:"demo-2", title:"Reunión con Vecinos del Barrio Sur",
+        description:"<p>Mantuvimos una importante reunión con los vecinos y vecinas del Barrio Sur para escuchar sus necesidades y propuestas. La participación fue masiva, con más de 150 personas presentes que expresaron sus inquietudes sobre la infraestructura del barrio.</p><p>Nos comprometemos a trasladar cada propuesta a las autoridades municipales correspondientes.</p>",
+        image:"https://picsum.photos/seed/pjq-reunion/800/500",
+        media:[{type:"img",url:"https://picsum.photos/seed/pjq-reunion/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-reunion2/800/500"}],
+        date:"8 de abril de 2026", timestamp:1744070400000
+    },
+    {
+        id:"demo-3", title:"Entrega de Útiles Escolares",
+        description:"<p>En el marco del inicio del ciclo lectivo, llevamos adelante la entrega de útiles escolares a más de 300 niños y niñas de Quequén. Esta iniciativa busca garantizar que todos los chicos puedan arrancar el año con los materiales necesarios.</p><p>La actividad se desarrolló en la sede de nuestra Unidad Básica con una gran concurrencia de familias del barrio.</p>",
+        image:"https://picsum.photos/seed/pjq-utiles/800/500",
+        media:[{type:"img",url:"https://picsum.photos/seed/pjq-utiles/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-utiles2/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-utiles3/800/500"}],
+        date:"3 de abril de 2026", timestamp:1743638400000
+    },
+    {
+        id:"demo-4", title:"Acto por el Día de la Lealtad Peronista",
+        description:"<p>Celebramos con emoción y compromiso el Día de la Lealtad Peronista en la plaza central de Quequén. El acto contó con la participación de cientos de militantes, simpatizantes y vecinos que se sumaron a este histórico aniversario.</p><p>La jornada incluyó discursos, música popular y la renovación del compromiso con los valores de la justicia social, la soberanía y la independencia económica.</p>",
+        image:"https://picsum.photos/seed/pjq-acto/800/500",
+        media:[{type:"img",url:"https://picsum.photos/seed/pjq-acto/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-acto2/800/500"}],
+        date:"17 de octubre de 2025", timestamp:1729123200000
+    },
+    {
+        id:"demo-5", title:"Campaña de Vacunación Comunitaria",
+        description:"<p>Organizamos junto al municipio una campaña de vacunación comunitaria en nuestra sede, atendiendo a más de 400 personas en un solo día. El operativo contó con personal médico y enfermeros que garantizaron la atención de calidad para toda la comunidad.</p><p>Este tipo de acciones concretas son las que nos identifican como un partido comprometido con la salud del pueblo.</p>",
+        image:"https://picsum.photos/seed/pjq-salud/800/500",
+        media:[{type:"img",url:"https://picsum.photos/seed/pjq-salud/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-salud2/800/500"}],
+        date:"25 de marzo de 2026", timestamp:1742860800000
+    },
+    {
+        id:"demo-6", title:"Torneo Deportivo Barrial",
+        description:"<p>Organizamos el Primer Torneo Deportivo Barrial con la participación de equipos de fútbol, básquet y vóley de los distintos barrios de Quequén. El evento fue una verdadera fiesta del deporte comunitario con la participación de más de 200 jóvenes.</p><p>El deporte es una herramienta fundamental para la integración social y la construcción de comunidad. Nos comprometemos a realizar este torneo de manera regular.</p>",
+        image:"https://picsum.photos/seed/pjq-deporte/800/500",
+        media:[{type:"img",url:"https://picsum.photos/seed/pjq-deporte/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-deporte2/800/500"},{type:"img",url:"https://picsum.photos/seed/pjq-deporte3/800/500"}],
+        date:"20 de marzo de 2026", timestamp:1742428800000
+    }
+];
+const DEMO_FOTOS = [
+    {id:"df-1", url:"https://picsum.photos/seed/pjq-f1/1200/600", titulo:"Acto en la Plaza Central", orden:0},
+    {id:"df-2", url:"https://picsum.photos/seed/pjq-f2/1200/600", titulo:"Reunión de militantes", orden:1},
+    {id:"df-3", url:"https://picsum.photos/seed/pjq-f3/1200/600", titulo:"Jornada comunitaria en Quequén", orden:2},
+    {id:"df-4", url:"https://picsum.photos/seed/pjq-f4/1200/600", titulo:"Entrega de donaciones", orden:3},
+    {id:"df-5", url:"https://picsum.photos/seed/pjq-f5/1200/600", titulo:"Asamblea vecinal", orden:4},
+    {id:"df-6", url:"https://picsum.photos/seed/pjq-f6/1200/600", titulo:"Campaña de salud comunitaria", orden:5},
+    {id:"df-7", url:"https://picsum.photos/seed/pjq-f7/1200/600", titulo:"Torneo deportivo barrial", orden:6},
+    {id:"df-8", url:"https://picsum.photos/seed/pjq-f8/1200/600", titulo:"Sede de la Unidad Básica", orden:7}
+];
+
+let mainSlide  = 0;
+let modalSlide = {};
+let mediaList  = [];   // [{type:'img'|'video', url, embedUrl?, thumb?}]
+let touchStartX = 0;
+
+const $app = document.getElementById("app");
+
+// =============================================
+// UTILIDADES
+// =============================================
+const setMeta = (attr, val, content) => {
+    let el = document.querySelector(`meta[${attr}="${val}"]`);
+    if (!el) { el = document.createElement("meta"); el.setAttribute(attr,val); document.head.appendChild(el); }
+    el.setAttribute("content", content);
+};
+const updateMeta = (act) => {
+    if (act) {
+        const plain = act.description.replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+        const prev  = plain.substring(0,155)+(plain.length>155?"…":"");
+        const img   = act.media&&act.media.length>0&&act.media[0].type==="img"
+                      ? act.media[0].url : (act.image||"");
+        document.title = `${act.title} | Partido Justicialista`;
+        setMeta("name","description",prev);
+        setMeta("property","og:title",`${act.title} | Partido Justicialista`);
+        setMeta("property","og:description",prev);
+        setMeta("property","og:url",window.location.href);
+        setMeta("property","og:image",img);
+    } else {
+        const def = "La UB de Quequén del Partido Justicialista de Necochea, comprometida con el bienestar de nuestra comunidad.";
+        document.title = "Partido Justicialista de Necochea, Unidad Básica Quequén";
+        setMeta("name","description",def);
+        setMeta("property","og:title","Partido Justicialista de Necochea, Unidad Básica Quequén");
+        setMeta("property","og:description",def);
+        setMeta("property","og:url",window.location.href.split("#")[0]);
+        setMeta("property","og:image","");
+    }
+};
+
+const isYTUrl    = u => /youtube\.com|youtu\.be/.test(u);
+const toYTEmbed  = u => { const m=u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?`https://www.youtube.com/embed/${m[1]}?rel=0`:null; };
+const toYTThumb  = u => { const m=u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?`https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`:null; };
+const stripHtml  = h => h.replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+const esc        = s => (s||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/"/g,"&quot;");
+const getDate    = () => new Date().toLocaleDateString("es-ES",{year:"numeric",month:"long",day:"numeric"});
+
+const normalizeAct = (d, id) => {
+    let media = d.media || [];
+    if (!media.length) {
+        const imgs = d.images||(d.image?[d.image]:[]);
+        media = imgs.map(u=>({type:"img",url:u}));
+    }
+    return { id, ...d, media };
+};
+
+// =============================================
+// FIREBASE CRUD
+// =============================================
+const loadActivities = async () => {
+    try {
+        const snap = await activitiesCol.orderBy("timestamp","desc").limit(MAX_ACT).get();
+        activities = snap.docs.map(doc=>normalizeAct(doc.data(),doc.id));
+        if (!activities.length) activities = DEMO_ACTIVITIES;
+    } catch(e) { console.error(e); activities = DEMO_ACTIVITIES; }
+    render();
+};
+const loadFotos = async () => {
+    try {
+        const snap = await fotosCol.orderBy("orden","asc").get();
+        fotosCarrusel = snap.docs.map(doc=>({id:doc.id,...doc.data()}));
+        if (!fotosCarrusel.length) fotosCarrusel = DEMO_FOTOS;
+    } catch(e) { console.error(e); fotosCarrusel = DEMO_FOTOS; }
+    render();
+};
+const saveActivity = async (data) => {
+    try {
+        if (editingActivity) await activitiesCol.doc(editingActivity.id).update(data);
+        else                 await activitiesCol.add(data);
+        await loadActivities();
+    } catch(e) { console.error(e); alert("Error al guardar. Revisá la consola."); }
+};
+const deleteActFB  = async (id) => { try{ await activitiesCol.doc(id).delete(); await loadActivities(); }catch(e){console.error(e);} };
+const saveFoto     = async (d)     => { try{ await fotosCol.add(d);            await loadFotos(); }catch(e){console.error(e);} };
+const updateFoto   = async (id,d)  => { try{ await fotosCol.doc(id).update(d); await loadFotos(); }catch(e){console.error(e);} };
+const deleteFotoFB = async (id)    => { try{ await fotosCol.doc(id).delete();  await loadFotos(); }catch(e){console.error(e);} };
+
+// =============================================
+// NAVEGACIÓN
+// =============================================
+const navigateTo = (page) => { currentPage=page; render(); };
+window.toggleMenu = () => { const m=document.getElementById("mobile-menu"); if(m) m.classList.toggle("show"); };
+window.closeMenu  = () => { const m=document.getElementById("mobile-menu"); if(m) m.classList.remove("show"); };
+window.toggleMasActividades = () => {
+    const el=document.getElementById("mas-actividades");
+    const btn=document.getElementById("btn-ver-mas");
+    if(!el||!btn) return;
+    const open=el.style.display==="block";
+    el.style.display=open?"none":"block";
+    const rest=activities.slice(MAX_FEATURED);
+    btn.textContent=open?`Ver más actividades (${rest.length})`:"Ocultar";
+};
+
+const getActFromHash = () => {
+    const h = window.location.hash;
+    if (h&&h.startsWith("#actividad-")) {
+        const id=h.replace("#actividad-","");
+        const a=activities.find(x=>x.id===id);
+        updateMeta(a||null); return a;
+    }
+    updateMeta(null); return null;
+};
+
+// =============================================
+// CARRUSEL GALERÍA
+// =============================================
+let carTouchX = 0;
+window.carTouchStart = (e) => { carTouchX = e.touches[0].clientX; };
+window.carTouchEnd   = (e) => { const dx=e.changedTouches[0].clientX-carTouchX; if(Math.abs(dx)>40) dx<0?window.nextSlide():window.prevSlide(); };
+let autoSlideTimer = null;
+const startAutoSlide = () => {
+    stopAutoSlide();
+    if(fotosCarrusel.length>1)
+        autoSlideTimer = setInterval(()=>{ mainSlide=(mainSlide+1)%fotosCarrusel.length; updateMainCar(); }, 4500);
+};
+const stopAutoSlide = () => { if(autoSlideTimer){ clearInterval(autoSlideTimer); autoSlideTimer=null; } };
+window.nextSlide = ()  => { if(fotosCarrusel.length){mainSlide=(mainSlide+1)%fotosCarrusel.length; updateMainCar(); startAutoSlide();} };
+window.prevSlide = ()  => { if(fotosCarrusel.length){mainSlide=(mainSlide-1+fotosCarrusel.length)%fotosCarrusel.length; updateMainCar(); startAutoSlide();} };
+window.goToSlide = (i) => { mainSlide=i; updateMainCar(); startAutoSlide(); };
+const updateMainCar = () => {
+    const t=document.getElementById("carrusel-track");
+    if(t) t.style.transform=`translateX(-${mainSlide*100}%)`;
+    document.querySelectorAll(".carrusel-dot").forEach((d,i)=>d.classList.toggle("active",i===mainSlide));
+};
+
+// =============================================
+// CARRUSEL MODAL
+// =============================================
+window.nextModalSlide = (aid) => {
+    const act=activities.find(a=>a.id===aid);
+    if(!act||!act.media||act.media.length<=1) return;
+    modalSlide[aid]=((modalSlide[aid]||0)+1)%act.media.length;
+    updateModalCar(aid);
+};
+window.prevModalSlide = (aid) => {
+    const act=activities.find(a=>a.id===aid);
+    if(!act||!act.media||act.media.length<=1) return;
+    modalSlide[aid]=((modalSlide[aid]||0)-1+act.media.length)%act.media.length;
+    updateModalCar(aid);
+};
+window.goToModalSlide = (aid,i) => { modalSlide[aid]=i; updateModalCar(aid); };
+const updateModalCar = (aid) => {
+    const cur=modalSlide[aid]||0;
+    const t=document.getElementById(`mtrack-${aid}`);
+    if(t) t.style.transform=`translateX(-${cur*100}%)`;
+    document.querySelectorAll(`.mthumb-${aid}`).forEach((x,i)=>x.classList.toggle("active",i===cur));
+    const ctr=document.getElementById(`mcounter-${aid}`);
+    const act=activities.find(a=>a.id===aid);
+    if(ctr&&act) ctr.textContent=`${cur+1} / ${act.media.length}`;
+};
+window.modalTouchStart = (e,aid) => { touchStartX=e.touches[0].clientX; };
+window.modalTouchEnd   = (e,aid) => {
+    const dx=e.changedTouches[0].clientX-touchStartX;
+    if(Math.abs(dx)>40) dx<0?window.nextModalSlide(aid):window.prevModalSlide(aid);
+};
+
+// =============================================
+// ABRIR / CERRAR MODAL
+// =============================================
+window.openActivity  = (id) => { window.location.hash=`actividad-${id}`; render(); };
+window.closeActivity = ()   => { window.location.hash=""; updateMeta(null); render(); };
+// Genera la URL "bonita" para compartir: /actividad/ID
+// Esta URL pasa por la Netlify Function que pone las meta tags correctas
+const getShareUrl = (actId) => {
+    const base = window.location.origin;
+    return `${base}/actividad/${actId}`;
+};
+
+window.shareWA  = (title, url) => window.open(`https://wa.me/?text=${encodeURIComponent(`*${title}*\n${url}`)}`, "_blank");
+window.shareFB  = (url)        => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank","width=600,height=400");
+window.copyLink = (actId) => {
+    const shareUrl = actId ? getShareUrl(actId) : window.location.href;
+    navigator.clipboard.writeText(shareUrl).then(()=>{
+        const el=document.getElementById("copy-ok");
+        if(el){ el.style.display="block"; setTimeout(()=>el.style.display="none",2500); }
+    }).catch(()=>prompt("Copiá este link:", shareUrl));
+};
+
+// =============================================
+// ADMIN — EDITOR ENRIQUECIDO
+// =============================================
+window.richFormat    = (cmd,val) => { document.execCommand(cmd,false,val||null); document.getElementById("richEditor").focus(); };
+window.richInsertImg = (size) => {
+    const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+    inp.onchange=e=>{
+        const f=e.target.files[0]; if(!f) return;
+        const r=new FileReader();
+        r.onload=ev=>{
+            const ed=document.getElementById("richEditor"); if(!ed) return;
+            ed.focus();
+            const img=document.createElement("img");
+            img.src=ev.target.result; img.className=`img-${size}`; img.alt="imagen";
+            const sel=window.getSelection();
+            if(sel&&sel.rangeCount>0&&ed.contains(sel.anchorNode)){
+                const rng=sel.getRangeAt(0); rng.deleteContents(); rng.insertNode(img);
+                rng.setStartAfter(img); rng.collapse(true);
+                sel.removeAllRanges(); sel.addRange(rng);
+            } else ed.appendChild(img);
+        };
+        r.readAsDataURL(f);
+    };
+    inp.click();
+};
+const getEditor = () => { const e=document.getElementById("richEditor"); return e?e.innerHTML:""; };
+const setEditor = (h) => { const e=document.getElementById("richEditor"); if(e) e.innerHTML=h||""; };
+
+// =============================================
+// ADMIN — GESTIÓN DE MEDIOS (URL)
+// =============================================
+window.addMediaUrl = () => {
+    const url=prompt("Pegá la URL de la imagen o video de YouTube:\n\nPara fotos: usá imgbb.com (gratis)\nPara video: youtube.com/watch?v=...");
+    if (!url||!url.trim()) return;
+    const u=url.trim();
+    if (isYTUrl(u)) {
+        const embedUrl=toYTEmbed(u);
+        if (!embedUrl){ alert("URL de YouTube no válida."); return; }
+        mediaList.push({ type:"video", url:u, embedUrl, thumb:toYTThumb(u) });
+    } else {
+        mediaList.push({ type:"img", url:u });
+    }
+    refreshMediaPreview();
+};
+window.removeMedia = (i) => { mediaList.splice(i,1); refreshMediaPreview(); };
+const refreshMediaPreview = () => {
+    const c=document.getElementById("mediaPreview"); if(!c) return;
+    c.innerHTML=mediaList.map((m,i)=>{
+        if(m.type==="video") return `
+            <div class="media-preview-item is-video" style="position:relative;">
+                ${m.thumb?`<img src="${m.thumb}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:.5;">`:""}
+                <span style="position:relative;z-index:1;">▶</span>
+                <button class="media-remove-btn" onclick="removeMedia(${i})">✕</button>
+            </div>`;
+        return `
+            <div class="media-preview-item">
+                <img src="${m.url}" alt="media">
+                <button class="media-remove-btn" onclick="removeMedia(${i})">✕</button>
+            </div>`;
+    }).join("");
+};
+
+// =============================================
+// ADMIN — GALERÍA
+// =============================================
+window.subirFotoGaleria = () => {
+    if(fotosCarrusel.length>=MAX_FOTO){ alert("Máximo 15 fotos."); return; }
+    const url=prompt("URL de la imagen (subila a imgbb.com y pegá la URL directa):");
+    if(!url||!url.trim()) return;
+    const titulo=prompt("Título para esta foto:","Nueva foto");
+    if(!titulo) return;
+    saveFoto({ url:url.trim(), titulo, orden:fotosCarrusel.length });
+};
+window.subirFotoDesdeArchivo = () => {
+    if(fotosCarrusel.length>=MAX_FOTO){ alert("Máximo 15 fotos."); return; }
+    const inp=document.createElement("input");
+    inp.type="file"; inp.accept="image/*";
+    inp.onchange=e=>{
+        const f=e.target.files[0]; if(!f) return;
+        if(f.size>600000){ alert("La imagen es muy grande (máx. 600 KB). Comprimí la foto en https://squoosh.app y volvé a intentarlo."); return; }
+        const r=new FileReader();
+        r.onload=ev=>{
+            const titulo=prompt("Título para esta foto:",f.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," "));
+            if(titulo===null) return;
+            saveFoto({ url:ev.target.result, titulo:titulo||"Sin título", orden:fotosCarrusel.length });
+        };
+        r.readAsDataURL(f);
+    };
+    inp.click();
+};
+window.actualizarFoto  = async (id,titulo) => { if(titulo) await updateFoto(id,{titulo}); };
+window.eliminarFoto    = async (id)        => { if(confirm("¿Eliminar esta foto?")) await deleteFotoFB(id); };
+window.moverFoto = async (id,dir) => {
+    const i=fotosCarrusel.findIndex(f=>f.id===id); if(i===-1) return;
+    const ni=dir==="arriba"?i-1:i+1;
+    if(ni<0||ni>=fotosCarrusel.length) return;
+    await updateFoto(fotosCarrusel[i].id,{orden:ni});
+    await updateFoto(fotosCarrusel[ni].id,{orden:i});
+};
+
+// =============================================
+// ADMIN — GUARDAR ACTIVIDAD
+// =============================================
+window.handleActivitySubmit = async (e) => {
+    e.preventDefault();
+    const title=document.getElementById("actTitle").value.trim();
+    const desc =getEditor();
+    if(!title){ alert("El título es obligatorio."); return; }
+    if(!mediaList.length){ alert("Agregá al menos una imagen o video."); return; }
+    const firstImg=mediaList.find(m=>m.type==="img");
+    await saveActivity({
+        title, description:desc,
+        image: firstImg?firstImg.url:(mediaList[0].thumb||""),
+        media: mediaList,
+        images: mediaList.filter(m=>m.type==="img").map(m=>m.url),
+        date:  editingActivity?(editingActivity.date||getDate()):getDate(),
+        timestamp: editingActivity?editingActivity.timestamp:Date.now(),
+    });
+    editingActivity=null; mediaList=[]; render();
+};
+
+window.editActivityAdmin = (id) => {
+    editingActivity=activities.find(a=>a.id===id);
+    mediaList=editingActivity&&editingActivity.media?[...editingActivity.media]:[];
+    adminTab="actividades"; render();
+    setTimeout(()=>{ if(editingActivity) setEditor(editingActivity.description); },60);
+};
+window.deleteActivityAdmin = async (id) => {
+    if(confirm("¿Eliminar esta actividad?")){
+        await deleteActFB(id);
+        if(editingActivity&&editingActivity.id===id){ editingActivity=null; mediaList=[]; }
+    }
+};
+window.cancelEdit  = () => { editingActivity=null; mediaList=[]; render(); };
+window.setAdminTab = (t) => { adminTab=t; render(); };
+
+// =============================================
+// COMPONENTES
+// =============================================
+const Navbar = () => `
+    <nav class="navbar">
+        <div class="logo">Partido Justicialista</div>
+        <div class="nav-links">
+            <a href="#" onclick="navigateTo('home');closeMenu()">Inicio</a>
+            <a href="#" onclick="document.getElementById('info').scrollIntoView({behavior:'smooth'});closeMenu()">Nosotros</a>
+            <a href="#" onclick="document.getElementById('actividades').scrollIntoView({behavior:'smooth'});closeMenu()">Actividades</a>
+            <a href="#" onclick="document.getElementById('carrusel').scrollIntoView({behavior:'smooth'});closeMenu()">Galería</a>
+            <a href="#" onclick="document.getElementById('contacto').scrollIntoView({behavior:'smooth'});closeMenu()">Contacto</a>
+            <a href="#" onclick="navigateTo('admin');closeMenu()">Admin</a>
+        </div>
+        <button class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+    </nav>
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="#" onclick="navigateTo('home');closeMenu()">Inicio</a>
+        <a href="#" onclick="document.getElementById('info').scrollIntoView({behavior:'smooth'});closeMenu()">Nosotros</a>
+        <a href="#" onclick="document.getElementById('actividades').scrollIntoView({behavior:'smooth'});closeMenu()">Actividades</a>
+        <a href="#" onclick="document.getElementById('carrusel').scrollIntoView({behavior:'smooth'});closeMenu()">Galería</a>
+        <a href="#" onclick="document.getElementById('contacto').scrollIntoView({behavior:'smooth'});closeMenu()">Contacto</a>
+        <a href="#" onclick="navigateTo('admin');closeMenu()">Admin</a>
+    </div>`;
+
+const Hero = () => `
+    <section class="hero">
+        <div class="hero-content">
+            <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADhAOEDASIAAhEBAxEB/8QAHQABAAEFAQEBAAAAAAAAAAAAAAYDBAUHCAIBCf/EAFYQAAEDAwEEAwkLBgoHCQAAAAEAAgMEBREGBxIhMRNBcQgUIjM3UWF0tBUyNUJSdYGWsbLTI1Zzk6HUFhhUVVdicoKRlBeEkpWiwdEkJTZGdoOjs/D/xAAcAQEAAgIDAQAAAAAAAAAAAAAABgcCBQEDBAj/xABHEQABAwICBQgGBggEBwAAAAABAAIDBBEFIQYSMUFRBxNhcYGRodEiMlJyscEUFSM1NvAWM1NzssPT4RdCwtImNENiY4Ki/9oADAMBAAIRAxEAPwDQ6IishQJEREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREX2yW+/anvPuLpW1z3Ks3d5wjAwxvynOJDWt9LiBnhzUyvuxPaTZdOVt+uVTZYqejhM0sTKtzpN0c8AR7ufpUXxHTHCMPnFPNKNc7ri/df+y3FPgdXOzXAsOlQxFsX+LxtT/nDTf+dk/BVjd9hm0q1tpXVVfYSKqqjpY+jq3nw5DhucxDAzzP7Fq2cpOAPdqtmBPWPNek6N1g4ePkoQi2L/F52p/zjpv/ADsn4KxsWxLaPLqap082vsXftNRw1shNW/o+jlfIxuD0Wd7MT8jHLHHzG8pGAPBLZhlmcxs2celcfo3Vjh4+ShiKf1+wLafRUNRWTV+njHBE6V4ZWSF260EnH5HngLzbNgu06422luFPcNPCGqhZNGH1kgduuaHDI6E4OCn+JGAautzwts2jzXP6N1mzLx8lAkWxf4vG1P8AnDTf+dk/BWKtOxfaVdaGprrbNZqqGCplphirLendE4seY95gBaHhzckjJaerBPLeUfAHAuEwsLZ3G/ZvXB0brBw8fJQ9F71JZtWaSnbDqrT1bbg4gNlkjzG8+YSNJY4+gOyramqYZ25jdx6x1hSqgxajr2B9PIHA8D8OPYtXU0E9MftGqsiItivGiIiIiIiIiIiIiIiIiIiIiIiIiIiIip1JIppSDghhx/gqioyNqquqgtVupJayvrHCKCCJuXPc7gAP/wB6TwXmrJ44IHSSGwA2rvponSyta0XK6e7j6gpKfZKa+GnYyqrbhOaiUDwpNx26wE+YAcB6SeZKnG2XyU6n+bpfsUH2O2raVoPQlNp1+irZWujmlmMpvrIj+UeXYLRG4ZGccyszrR+0nUWkrpYm6FtdMa+mfAJTqBrtzI546EZ/xXxriEZnx59WJGFnOXvzjPVDsv8ANfZuVsMNoQ2xvbgVs13vj2qL7Q3YhsAx76/0Q/4yf+SsTfdpBOf9Hts+sbfwVitSTbSbu22gaEtcPeVxgrTnULXb/Rknd8TwznmtNRYfJHO1z3MsP/JH/uXa94LbC/cVspQ63+Wy9/8Apu3+01qp+7m0j+j22fWNv4Kw9M7aTDrWv1GdC2pwq7bTUIh/hA3LOhkneXb3Q8c9MBjHDd9PDKloJI2ShzmZtsPtI9us0+1wBXDngkbe4qdarcGaVvDzxDaCc/8AxuVPRX/gyxfNtN/9TVFr1cdpNws1dbxoG1xmqppIA86iad3faW5x0PHGV8sdw2k22yUFuOgbXKaSmjgLxqJo3txgbnHQ8M4XH1fJ9F1NZl9a/wCsj2W95c641r59xWc2i3OsorHHbrRL0d6vMwt9udjJikeCXzY6xFG18pHXuY6wszY7ZRWWzUVnt0XRUdFAyngZnOGNAAyes8OJWsLhqPUdk1kdWa20Lc4LXSUPetLNa6hlfHRB796eaRrd1/hBsQyGeC1h+UVN6/Wtgh09Q3qhqhdmXPwbXBREPlrpD8SMcOIwd4nAYAS4gApU4fURwxRRt1g43JaQ4F3C4JHot47CXHZmjZGkklX2rrhZLbp+pn1D0L7e8CJ8MsXS9O53BsTY8EyOceAYASTyC5y1vsEu1bbavVOl7bDZql7zLFpwSF7mQ45CTJaJTxJjHgDIaHcMnfOntPVtRc4tS6tdBU3lgd3pTREuprYxwwWxZ9/IRwdKQCeIAa3gpUvThuO1GAyXon3df0j/AJTbcBv6XbfZsM3YSwNnFnjL8/my/PKjrX9K+lqo3xTxuLHNe0tcHA4IIPEEHgQVkBx5LfPdWbMY6u3T7QbDThldSN3rtGweOhAx02PlMA4nrbx+KM88WuqMzN1/vgvqvQrS6HSGiEgycMiN4PDyO8doFe41hJpH6zPVKvkRFN1oEREREREREREREREREREREREREUm2C8e6D0xnjh8/sk6idZUMpoDK/j1Aecrauw3ZNryrudt1+y4UGnywOloe+6V1RJI18bmbxiDm4aWvOMuyeeMYJgPKHilHTYRLBPIGue1wF+JaQNlz3A5ZqRaO0srqgTAZD+y6uRQgWLakeW0Cwns0y794X33B2p/n/Yvqw794XyY3DGOFxO3uk/pqw+dPsnw81NkUJ9wdqf5/2L6sO/eE9wdqf5/2L6sO/eFz9VN/bt7pP6a450+yfDzU2RQn3B2p/n/Yvqw794T3B2p/n/Yvqw794T6qb+3b3Sf0050+yfDzU2RQn3B2p/n/AGL6sO/eE9wdqf5/2L6sO/eE+qm/t290n9NOdPsnw81NlpayRWHZvtvvtCbdOaS721lxtraSglqpKZxlLKiGJkTXOaxzt15AAbyzyCmfuDtT/P8AsX1Yd+8LDT6A1/JrGHVUm0O1sucNA+gYWac8DoXPDzlpn55aOK2eHRQ0rZWTVA1HtsQBILm4Lf8Ap8RtsciRvXW8l5BDcx1eakztRakrC9tn0RWgAeBPdqyKjif/AHWGSUfTGF8fbtdV7j31qW2WeFw8XbLf00zT6JpyWn9Usf7gbT/6SLT9WG/jp7gbT/6SLT9WG/jry6lO39XLEP8A1kd/EwjuAWfpHaD4eavXbP7NV8b/AFt61CS3de243CQwvHXmCPch/wCBcS6wtB0rtBvFiD8x0FdJAwk5Jj3ssJ9O4W59K7N9wNp/9JFp+rDfx1yDttp6+j2uX+nulfHX1zKtnT1MdP0DZXGFhyI9527wIHM8s9asvkwqpW4k9n0gSDVvYa+ViBkHNaAM93RktTjMbXU5u2yotOWgr6qdN4lvYqi+m2m4uqzIsUREXK4REREREREREREREREREREX21UcNz1tpq11TBJTVd0poJmHk5j5mNcPpBIXf9NG0va1rQGNHvRwAA6lwTpPym6P+eqP2iNd80fjD/ZXzzyjQMrNKqKmmzYXC46y2/erAwRxjwxz27bH5q6HDgAAPMERFaLGNjaGMFgNgGxaYkk3KLQm1jbvdLLquu03pG00E77dJ0NXXXAvMfS4BcxkbC0ndyAXFw45AHDK32uNNv1tp7JtovUFHVR1jLjuXGWOM+FRySDDmSZ4eEW74xxw8cORPjxCaWKEujOa3+jFFSVuIMgqr6pvs47tm5Zr/T7tQ3t7d0pzzu+58+Ozx+VlrZ3R2rqdzRdtJ2WvYPfGiq5Kdx7A8PH7QtOoo+MVqgfWVsSaC4M8WDCOon53XZOzHaZprX9NI21TS01yp2h1TbaoBk8I5b2ASHMyffNJHnweCmi4Goa242m60l7stU6kutC/pKaYdR62OHWxwyC3rBXbGznVNLrTRNr1NSR9C2th3pIc5MMrSWyR/wB14cPoW/oK76U3PIhVbpNo6/BZwAdZjth+R6QpCvMwDonZ44BK9LzJ4t39k/YscYY2SgnY8XBa7I9RUfpyRK0jiFzxddoVfovbTqWKpM1ZYpqqDvimblzoT3rB+ViHn87fjDlx57up7nbqizsvENdTvtr4O+W1QkHRGLd3t/e5buOOVy7tk8rOpvWIPZYFho9U3SHSc2h2SOFsqKnv12HYw0Hw4v7DpCx5HnDs8HFU1VaGR4rQ0dRT+i8sjDukaoz94eK7YtJTSVlRBPm1pcW9m7y4LZU+0at1htb03R22SWl07Dc29FHgtfWODXflZBzDfksPL3zvCwGaQ7ory56n9ci9niU02YeUzTPzi37j1C+6K8uep/XIvZ4lLMBw6nw7SCOnp22aIe/7QZniSuKKvmr8OknlOZeewW2LE03iG9iqKnTeIb2Kor7Z6oURdtKIiLJYoiIiIiIiIiIiIiIiIiIiK40s4M2l6Qc7kL1R+0Rrvyk4SuH9VcAad8oukvnmj9ojXf8AS+Od2FUBp2P+MaD3h/pU+wj7qd1H5q5REVmLUIuEtVzzVWutU1VRI6WaS+1oc93MhkzmNHYGtaAPMF3aAScDiVwZfXsk1XqOSN7XsdfK9zXNOQQamTBBWnxr9SOtTzk8AOJuJ3MPxCtURFGFdSLojuN6yV+ldS2xziYqO7iSIH4olhY4gejea4/T6Vzuule5Bo6eLZzcrgxmKmsvE/Tvz74RhrGDsAH7Stvg1+fPUq95RnN+gRgjPW+Rv8luhWF5u1ttTKcXCsip3Vk7aWma4+FLK/g1jRzJ5n0AEnABKt9X6jtelrJJdrtK5sQcI4oo270tRK73sUbfjPceQ7ScAEjVFpkul/1rb9Sakaxta2oYyhomO3o7dE57csafjSOwN+TrxgYaAudKsagw2he1+b3ggDrFr9QVX4Xh0tXJduTW5krWG2Tys6m9Yg9lgUKd8Lx+rv8AvNU22ygja1qUEEZngIz1jvWBQl3wvH6u/wC81azAfuum/ds/hCg2LfedR1uUr2YeUvTPzi37j1C+6K8uep/XIvZ4lNdl4LtpumWjiTcAcdjHk/sBUK7ory56n9ci9niWND+KG/uf5gUhwL7nf7x+AWJpvEN7FUVOm8Q3sVRXaz1Qo87aUREWSxREREREREREREREREREREVXTvlF0l880ftEa7/pvHO7CuANO+UXSXzzR+0Rrv8ApvHO7CqB07/GNB7w/wBKn2EfdTuo/NXKIistahQrbrcLha9j2qa+1ySxVcVvfuSxnDogSGvePMWtLnZHLGVxnTRRQ08cULWtjY0BoHLC79qYIamnlpqmGOaCVhZJHI0Oa9pGC0g8CCOGFqGp7nLZ8+okfTT3+hhc7LKenuB6OMeZu80kD0ZK1mI0T6nV1TsUu0U0igwV0hljLta2Y2i27t+S5kRdI1vc6aHhop5m3TU28yJzm5uDeYBI+IoRsA2P6a13sqtWp71cb7HXVbpxI2mrdyPwJnsGAWk8mjrWr+ppb2uFNP8AEajtfmneC1Kt69zLq6g07s21Qbu5zae3XjMDYml0s754mObDG3PhPLmuwB8rtKvdV7EdmGl7M+7Xi+aohgDgyNra4OknkPvY42BmXvPU0cVhNG6YpLa2Oq9zW29rHPfR0HTGbvXfADnvkPGWd4ADpOQADGYaPC8FfXM0fYZZCC4izW8T8gN61eK4xFpPEyCKMtDXXLjwtsHSVnZpLnf72NSaja1tY1pZRULH78Vujdza08nSO4b8nXyGGjjl7J8NUHrUX3wrRXdk+GqD1qL74VP4lXT18j553XcfzYdC9UVPHTw83GLABW20zR+nde3i6y2e8Q27VNjZHFXCUExSRmPpGCVvPdw84kbxByDvbu6ubm1m+GXBsLnO73cBE08XEkEYJxzx1gc+pbG2p1lZbdtOobjbpzBVRzxMzzbJG6kgD4nj4zHDgR2EYIBEZg0fM/ST9TMvNvbaYJe9pYy97q5k/wAWAR7u65xBaQ8uaN075DQC0TzR8TYbQQmSXWje1haCLkFwuW3AzBNtXuHTCqCLR7EqyobiQLXsBGVxcccujjlxystx7LNHad0jLYNSagvFPcL5et2Ozxw56GLpI94mIHBedwnekcBgHADd7Dufe6K8uep/XIvZ4lPNn9dV3DahpOSrkJFPUw0tPEHEsp4GRuDImZ6gBz5k5J4lQPuivLnqf1yL2eJerR2kqKfSTWqZC97orngPtBZoA3Ad5ud61sNTTz4c4UzdVjXEDpy29qxNN4hvYqip03iG9iqL6BZ6oUJdtKIiLJYoiIiIiIiIiIiIiIiIiIiKrp3yi6S+eaP2iNfoZppjJLu1kjGvaWu4OGQvzz075RdJfPNH7RGv0N0x8NM7HfYvnvlCJGltCR7Q+LVYOB/dp6j8SpV3nSfyWD9WE7zpP5LB+rCrop7rHiurVHBUO86T+SwfqwrK+1VisVmq7xd3UdHQUcTpqieRgDWMAyTy/YOJ5BetUX22aZ09XX+81IprfQwmaeTdLiGjqAHEknAAHEkgDmubdY7Qa/aZqSC2VFjrbHZLVFFcW0VXIx01ZK972wvlawlrQzonuEZLvDLXHBYF4MSxOLD4HTSHYMhfM9XaR1L0UtG6pkDGjt4K61brnVOq46qponP0pZejf3tSwwR9+zs3T4U73tcI88+jZgt+M4ngNbdz/LeGbKrWbfqW9W2IvnPQU0zOib+Wfya9jgM8z5yppe6iGltVRLM4tbubjQASXOd4LWgDiSXEADzlQfZO29ab0NQ2S4aXuxqqd0peY3QbvhSOcMEyjqKrd2P4hV0ssvO6rtdtrG1hZ1wLn3b9l1KBh1NDK1mpcWN8r53Fr+Nu1TdttZJdfde4VdddbkGdGyqrpzK+JpAy2McGxg4GdwDOOOVerDC83A/+VLz+tpPxl6GobfE5sdx6a1SOIAFazo2knqEmTG4+gOKjVQKqpeZJDru69Y+BK2sXNRN1WDVHVZZdXdk+GqD1qL74VkXsEfSl7RHu728Twx58+ZZHZ1Y9RasqYNRUEbLbpekkFQyuqGEy3LcO8BAz4sRI8a7mPeNOd8ddNh1RWtfzLbhoJJ3AWWNVUxwM9M7di1Btk8rOpvWIPZYFDHSzd/tp+mf0DozMYs+CZG+C1+PlBsjxnzOKme2Tys6m9Yg9lgUKd8Lx+rv+81W1gQBwumv+zZ/CFQeKOIxOosfaUr2YeUvTPzi37j1C+6K8uep/XIvZ4lNNmHlL0z84t+49QvuivLnqf1yL2eJY0P4ob+5/mBSDAvud/vn4BYmm8Q3sVRU6bxDexVFdrPVCjztpRERZLFERERERERERERERERERERVdO+UXSXzzR+0Rr9DdMfDTOx32L88tO+UXSXzzR+0Rr9DdMfDTOx32L565Q/xbQ+8Pi1WFgf3aeo/NTFFBNe7WdGaPqXW6prpbpeRytNrj75q/7zAcRj+tIWt9K1RqTaHtF1Y10MEsWiLY446Oje2puEjf60xHRxZGODGuI6nqWV+LUmHtvO8A8N/dtXbT0c1SbRtv8FL+6vvFsi0DSackuFILlc7xbhDRGUdNNGyrie9wZnJa0MJJxgYWodRie11zNSUzHzRxRCG4wMbvOfACXCRvWXRlzjgc2ueME7qvLRYrXap5qmlpi6sqDmorJ5HTVM588kryXu+krJKrsd0gZiNQ17GWa0EWO8Hb1eNtqlmH4c6liLXOzOeW5YLWMjH6eirKeZrtyro5oHsOQ/8A7RHgDzhwOPpWdPNYCk0vTQVjCa6skt8E/fFLbnFvQQScwRgbxDTktaSWtJGB4LcZ9aGd0YY1jDexJv12y7LZ7rnLithGHaxc4W2IrGWasjMjKigbUwOyAYXgkt/rMdjq8xdnzK9e5rG7z3Bo85OFZbt0p+T4K1g6njopP8QC1x9GGrqiHV2+fms3KK6lsmk5LFXsirzYGGFz5WRSmCPAO9mSnf4DmkjiC3whkZwV1hoq5V952TWa73ShFDXVtmhnqKYM3BE90QLmhvxRk8uY5LnOgoKjWus7JpWhtVQ+opbjR3S4PnhBio6aKcPLnPyWkv6N0bWtJJyc4AK6tu/wXVfonfYrLwKGZuD1EkpPpB1gc8g3aD0/LJRLFnsNSxrbZbbdexcPbdaKot+1i6vqWOZHcmxVVI8jDZWthjjeGnrLXMORzALSeYUCd8Lx+rv+81dBar1hp+7ax1Fs91vaKaqoopYzaZiS3emNPG8RF2cxylzzuPaRnO7wO7v82RSzS0LJRVYldCd2ZoB3Q4A8M8xwHPJ4LHRfEZXUMcNRGWljWWO0OaW+iR2DMbj3DQfoRUY1WTTUMjd9w4kWOy2QPyWw9j9LPcNqthgpInymlnNXUuaMiGJrH4c49WXENHnJ4cjiCd0V5c9T+uRezxLoHRmr9O2Gp0lo/Sdlgpau6mmlvTt4vdTvfDvlj3uy6SbkDvHwW+YkBc/d0V5c9T+uRezxLnR2tmrdJedkjLG81ZoO0gSDM8Lm9uix33WEFDHQ4aYWP1iDn122d1liabxDexVFTpvEN7FUX0Cz1QoU7aUREWSxREREREREREREREREREREVXTvlE0l880ftEa7W2kQyVGlqinjrq6iEsrGvkoql0EpbvZLQ9hDgDjBwRkEjrXE9hdubQNKPxndvFIcf6xGu3tefAEn6Zn2lfNnKy98WPUz2GxGw9PoqytFmh1K1rhcE/MrWVntVts9J3paqGCjhJ3i2JgG8fO483H0nJV4iKBPe57i5xuSp6AGiwRWlwuEFE+KJ7Zpp5t7o4YYy97g3G87HU0ZGXHAyQM5IBu1hoKulm1lVUsNTFJNTUMYmja8F0Rc9xAcOokAHj6F2QsDiSRcAX/PasXutYDevDLrW3GvmorXEymdTRtfUOroH5Dnl260NBbng0ku3scRjPHHqCuv00cjmWmhPQvdG4OrXNMpaeJYNw4B6t4g5yDgcTd0+DqKsaMb3ekBx1435lRt1ytzYbi51dTBtJUyipJlbiEjwiHceGAQeK9J1cw2O4FuO8Z7Lb11i+93FUYr26alpqqqtUsFurDG1kssjCR0mAzpGZ4BxLRzPvhkDjj7fSLBZK66Ukwp4aOnfO6nk4wkNbnAHNmcYG6QOPIqhRQUd9sWmLSY4LhHX1trgdTEB4mYJ4jK0t6wGNkLh1Na7PAFb3pthOzanukFYy01r6eCRssduludRJRNe05a7oHPLTggYaRu8OSk2EaOHEGGRrtQNcQRYm4Fs8ztzt5LVVuJimIaRckXB/O5UdguhblYWVurdQVVPJeL5S0ze9qZrhFRU7A97IgXcXv3pXFziBxwABjjsm7/AAXVfonfYrpWt3+C6r9E77FYVZDHBh0kUYs0McAOwqLCR0koe43JK4V2zta/atqdjhlrqiEEf6pAsNHJpP8AgjURT2ve1YagRwy98yGJ8DgSal0RO4XtwWEYLS8se4HeIWa2yeVnU3rEHssChTvheP1d/wB5q0uF0rajC6QOJFmMORIvZoyNtoO8KITYrU4fidVzDra2sCpVstYGbSdMtGT/AN4tJJOSSWvJJJ4kk8STzKhndFeXPU/rkXs8SmmzDyl6Z+cW/ceoX3RXlz1P65F7PEu6h/FDf3P8wLYYGS7CHk+2fgFiabxDexVFTpvEN7FUV2s9UKOu2lERFksUREREREREREREREREREREtb2Ra20zNI4NYy60rnOPIATxkld1atpn1Viq4427z2gSNH9kgn9mVwNfIXS0m8xzmvYchzTxHpHp6/oXbex7WtJrzQlDeI5I+/WMEFwhB4xVDRhwI8zvfDzhwXznyz0M0dXBXNF2jI+Fu+x8OKsPRWobzGqNoPzv81E0Uo1Bpadkzqi2RiSFxz0IOHM7M8x+1R2x6Ku2tdQy2u8Cr0/pakIFdO93Q1FydjxEOfCZF8uXgT71nMuFf4XGzEZQxjw0HaSQLfnhvU5mro4ouc29G9UdF6evW0u4SU1iq5bXpunkMddfY2gvmcDh0NJvAtLgQQ6UgtbyAceWzr7sWs0VttsWipKawVFCx8TzLTmoZWMe4OcZjvNe6TeBIkLifCdkOyMbBtTrFarZTWy2Gio6KlibFBBDutZGxowGtA4AAK6FxoCcd+0/6wK3qKlwalpjTB7CHbbuFz1593BRGerqppRKbgjZ0LV9o2PWS32e53LVApL9e5IXblU2nMDaaNrXFsUQ33OAyS4kuO8cHgGtDY13GNgsV27nzS91ullttfcI5qwsqqmlZJK099ynIe4Ejjx5re9wiNVbaiCJzd6aFzGknhkggKBdzdoi77Otj1n0jfZaOW4Ub6h0rqSRz4zvzveMFzWnk4dXNSCCCKBgZE0AAZW4LxSSPkJc83KmdLYLDS3aW701ktsFymz0tXHSsbM/PPeeBvHPpKySIu5daK1u/wAF1X6J32K6Vrd/guq/RO+xeHE/+Sm913wKzi9cda4W2yeVnU3rEHssChTvheP1d/3mreO3bZ5d6q+VGrbFTPr4p42d+0kTS6dj2NDRIxvxwWtaC0eEC3IDs8NIdG417JxjcETmHz5Lmn/kVHNFq+nq8MhETgSxrWkbwQAMx2ZcVCsepJabEJXyCzXXIO43Up2YeUvTPzi37j1C+6K8uep/XIvZ4lt7ufNJyXrUw1NLUNjorJVFgiHF805hyAfMxrZQc8y7A5A51D3RXlz1P65F7PEucLq4p9KyyM3LIrHoOuDbuIW/wimkhwa7xbWJI6rLE03iG9iqKnTeIb2Kor2Z6oUXdtKIiLJYoiIiIiIiIiIiIiIiIiIiL44BwIPIr1pTUmpNB3w3fTNcad7gGyxvbvxTM+TIzrAJODwIzwI4r4vjmhwwRla7E8Lp8SgMM7QQeOa9lFWyUj9dhW46Hup6lsAbcNFQPnHBzoLkWNPp3XRkjsye1XH8amL8x3f71H4S0TLbqeR2S0Lx7l0/yVW7+SXBC4nmf/p/+5SNulD7Z/nwW+f41MX5ju/3qPwlmdN907pesqmQ32xXG0MecGoieKqNnpcGhr8djSubfcun+SvL7VDzZkFeefkhwd7CGRkHiHOv4kjwK7GaUOvmv0b0dfIJm0tVRVkVVbaxrXxyxPDo3td717SOGFOVxX3GmqZt276FrJd4Uw7+oQTndaXbszR6N5zHdr3Lsay1zK6ia/eHStGJB1g+f6VFtEny4TXT4FUvuWG7L72naB1ZZDfrcFuarVmjbOzftV8iIrCXgRWt3+C6r9E77FdLD6nuEcFC+mYQ+aQY3QeIHX/0+lajHquGkw6aSZ1hqkdZIyA6Su2BhfIAFEeXHOMLkHXs1vqdd36ptD4pKCavkkhfF7x+cF7h5wX75zyOcjgpDqrWu0DXYdaRZrlSUsp3JbZRUMpcfOyd5GTjiCPAaesFe6bZ9QafoGXzaneKbT9qHvbcyYPq6rHHcyzOOAILY95xB98zCrXRnDmaOF09ZKDI8WEbfScd+wbTuyyHHPLXY4+XGtWmpoyGtNy9wsOGV1sjubLZLbdn1VdKpwjiulc+si3uAELY2RBxPmPROcD8kgrlfbVeLdf9rV/vFpqG1NDU1rTBM0cJA2JjC4eglpwesYKlm2bbZXauo3ac09SusumWNEXQNw2aqYBgNfu8GR4A/JjPpJ5DV1sopJ5RNIMDqU20K0arRiEuK1Y1Xy7G+y24OZ45DZ8Tl666phpqRtMw3DQB3Cyz1N4hvYqi+NGBhfVeTRYWUEJuUREXK4REREREREREREREREREREREREREREREREVfS2oa/ROtrfqu3M6R1M/E0JOBNG4br2HzZaeB6iAepdmaF2oaO1JSxV1j1LRxTloL6WedsNREetrmOIP0jLT1EhcVSMEjC1w4FYattRdkMa17T1OGVV2mfJ9FjdQ2sheY5BvG3j8cxmLXKleEY6IIuZlzC/SBut4g3BvNscfOZo/+qtK3aTaaZp751VYqbHMvrIW/a5fm261SA473hP8A7YVWK21GPBjjb2NwVGm6AY16pxGS3536xW1+uaPbqBd7XnbpoKljcanaDbJA3m2jkMzv8IQSVr/UHdL6EomuFqorzeJOpzYBBH9JkIcP9krk0WyqJGX4VdlmJP5SQn7F3M5KYqh4fWzSSn/ud/a/iup+kUbBZgAW19Zd0pra7Rup7HFRaehdw34h3zP/ALbxuj6GZ9K1Dca673y4vuFxq6qurJeD6iqldLIRzxl3V6OQWSgtdPHjLcq8jiYwYa0BTrB9CsPwwWgjDeoZ9p2ntJWnqsekl2LFUFpDSHzcXdqyzGNY3DQAF6RTCGBkQs0LQyzPlN3FERF3LqRERERERERERERERERERERERERERERERERERERERETA8yYCIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiL/2Q==" alt="Escudo Peronista" class="hero-escudo">
+            <h1>"Delegación Peronista del Pueblo Quequenense"</h1>
+            <h1>Partido Justicialista Necochea</h1>
+            <h2>Unidad Básica</h2>
+            <button onclick="document.getElementById('actividades').scrollIntoView({behavior:'smooth'})">Ver Actividades</button>
+        </div>
+    </section>`;
+
+const OrgInfo = () => `
+    <section id="info" style="padding:4rem 2rem;background:var(--blanco);">
+        <div class="container">
+            <h2 class="section-title">Nuestra Organización</h2>
+            <div class="section-divider"></div>
+            <div class="info-grid">
+                <div class="info-card"><h3>Sobre Nosotros</h3><p>La UB de Quequén del Partido Justicialista de Necochea es una organización política comprometida con el bienestar de nuestra comunidad. Trabajamos incansablemente por la justicia social y el desarrollo integral de todos los quequenenses.</p></div>
+                <div class="info-card"><h3>Misión</h3><p>Promover políticas públicas que garanticen el acceso a derechos fundamentales, fomentar la participación ciudadana y construir una sociedad más justa e inclusiva en Quequén y el partido de Necochea.</p></div>
+                <div class="info-card"><h3>Valores</h3><ul class="values-list"><li>Justicia Social</li><li>Solidaridad</li><li>Participación Democrática</li><li>Compromiso Comunitario</li><li>Transparencia</li><li>Inclusión</li></ul></div>
+            </div>
+        </div>
+    </section>`;
+
+const ActivityCard = (act) => {
+    const fm=act.media&&act.media.length>0?act.media[0]:null;
+    const imgSrc=fm?(fm.type==="video"?(fm.thumb||""):fm.url):(act.image||"");
+    const hasVid=act.media&&act.media.some(m=>m.type==="video");
+    const plain=stripHtml(act.description);
+    const prev=plain.length>180?plain.substring(0,180)+"…":plain;
+    return `
+    <div class="activity-card" onclick="openActivity('${esc(act.id)}')">
+        <div class="activity-image">
+            ${imgSrc?`<img src="${imgSrc}" alt="${esc(act.title)}" loading="lazy">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--celeste);font-size:2rem;">🏛️</div>'}
+            ${hasVid?'<span class="activity-video-badge">▶ Video</span>':""}
+        </div>
+        <div class="activity-content">
+            <h3>${act.title}</h3>
+            <p class="activity-description-preview">${prev}</p>
+            <div class="activity-footer">
+                <span class="activity-date">${act.date||getDate()}</span>
+                <span class="activity-read-more">Leer más</span>
+            </div>
+        </div>
+    </div>`;
+};
+
+const ActivitiesSection = () => {
+    const featured = activities.slice(0, MAX_FEATURED);
+    const rest = activities.slice(MAX_FEATURED);
+    return `
+    <section id="actividades" class="activities-section">
+        <div class="container">
+            <h2 class="section-title">Actividades Destacadas</h2>
+            <div class="section-divider"></div>
+            ${activities.length===0
+                ? '<p style="text-align:center;color:var(--texto-suave);padding:3rem;">Cargando actividades...</p>'
+                : `<div class="activities-grid">
+                    ${featured.map(act=>ActivityCard(act)).join("")}
+                   </div>
+                   ${rest.length>0?`
+                   <div style="margin-top:2rem;">
+                       <button id="btn-ver-mas" onclick="toggleMasActividades()" style="display:block;margin:0 auto;padding:.8rem 2.2rem;background:var(--azul);color:white;border:none;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,51,102,.3)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                           Ver más actividades (${rest.length})
+                       </button>
+                       <div id="mas-actividades" style="display:none;margin-top:1.75rem;">
+                           <div class="activities-grid">
+                               ${rest.map(act=>ActivityCard(act)).join("")}
+                           </div>
+                       </div>
+                   </div>`:""}
+                `}
+        </div>
+    </section>`;
+};
+
+const GaleriaSection = () => `
+    <section id="carrusel" class="carrusel-section">
+        <div class="container">
+            <h2 class="section-title">Galería de Fotos</h2>
+            <div class="section-divider"></div>
+            ${fotosCarrusel.length===0
+                ? '<p style="text-align:center;color:var(--texto-suave);">No hay fotos en la galería aún.</p>'
+                : `<div class="carrusel-container">
+                        <button class="carrusel-btn carrusel-prev" onclick="prevSlide()">‹</button>
+                        <button class="carrusel-btn carrusel-next" onclick="nextSlide()">›</button>
+                        <div class="carrusel-track" id="carrusel-track"
+                             ontouchstart="carTouchStart(event)"
+                             ontouchend="carTouchEnd(event)">
+                            ${fotosCarrusel.map(f=>`
+                                <div class="carrusel-slide">
+                                    <img src="${f.url}" alt="${f.titulo}" loading="lazy">
+                                    <div class="carrusel-caption">${f.titulo}</div>
+                                </div>`).join("")}
+                        </div>
+                   </div>
+                   <div class="carrusel-dots">
+                       ${fotosCarrusel.map((_,i)=>`<div class="carrusel-dot ${i===0?"active":""}" onclick="goToSlide(${i})"></div>`).join("")}
+                   </div>`}
+        </div>
+    </section>`;
+
+const ContactSection = () => `
+    <section id="contacto" class="contact-section">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            <div class="section-divider"></div>
+            <div class="contact-grid">
+                <div class="contact-item"><div class="contact-icon">📍</div><h3>Domicilio</h3><p>Calle 552 - 885<br>Quequén, Buenos Aires</p></div>
+                <div class="contact-item"><div class="contact-icon">📞</div><h3>Teléfono</h3><p>2262-000000</p></div>
+                <div class="contact-item"><div class="contact-icon">✉️</div><h3>Email</h3><p>pjquequenense@gmail.com</p></div>
+            </div>
+        </div>
+    </section>`;
+
+const Footer = () => `
+    <footer class="footer">
+        <p style="font-family:var(--font-display);font-size:1.1rem;color:white;margin-bottom:.4rem;">Partido Justicialista de Quequén</p>
+        <div class="social-links">
+            <a href="#" target="_blank">Facebook: Peronismo Quequenense</a> |
+            <a href="#" target="_blank">Instagram: Peronismo Quequenense</a>
+        </div>
+        <p style="margin-top:.8rem;font-size:.8rem;opacity:.6;">© 2026 · Todos los derechos reservados</p>
+    </footer>`;
+
+// =============================================
+// MODAL DE ACTIVIDAD
+// =============================================
+const ActivityModal = (act) => {
+    if(!act) return "";
+    const url   = window.location.href;
+    const media = act.media||[];
+    const multi = media.length>1;
+    const aid   = act.id;
+    if(modalSlide[aid]===undefined) modalSlide[aid]=0;
+    const cur=modalSlide[aid];
+
+    const slideH = (m,i) => m.type==="video"
+        ? `<div class="modal-carrusel-slide"><div class="video-embed"><iframe src="${m.embedUrl}" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"></iframe></div></div>`
+        : `<div class="modal-carrusel-slide"><img src="${m.url}" alt="${esc(act.title)}" loading="lazy"></div>`;
+
+    const thumbH = (m,i) => m.type==="video"
+        ? `<div class="modal-thumb is-video ${i===cur?"active":""} mthumb-${aid}" onclick="event.stopPropagation();goToModalSlide('${aid}',${i})" style="position:relative;overflow:hidden;">
+               ${m.thumb?`<img src="${m.thumb}" style="width:100%;height:100%;object-fit:cover;opacity:.5;position:absolute;inset:0;">`:""}
+               <span style="position:relative;z-index:1;">▶</span>
+           </div>`
+        : `<div class="modal-thumb ${i===cur?"active":""} mthumb-${aid}" onclick="event.stopPropagation();goToModalSlide('${aid}',${i})"><img src="${m.url}" alt="miniatura"></div>`;
+
+    return `
+    <div class="activity-modal-overlay" onclick="if(event.target===this)closeActivity()">
+      <div class="activity-modal">
+
+        <div class="modal-topbar">
+            <span class="modal-topbar-logo">Partido Justicialista</span>
+            <button class="modal-close-btn" onclick="closeActivity()" title="Cerrar">✕</button>
+        </div>
+
+        <div class="modal-body">
+            ${media.length>0?`
+            <div class="modal-media">
+                ${multi?`<span class="modal-media-counter" id="mcounter-${aid}">${cur+1} / ${media.length}</span>`:""}
+                ${multi?`
+                    <button class="modal-carrusel-btn modal-carrusel-prev" onclick="event.stopPropagation();prevModalSlide('${aid}')">‹</button>
+                    <button class="modal-carrusel-btn modal-carrusel-next" onclick="event.stopPropagation();nextModalSlide('${aid}')">›</button>`:""}
+                <div class="modal-carrusel" ontouchstart="modalTouchStart(event,'${aid}')" ontouchend="modalTouchEnd(event,'${aid}')">
+                    <div class="modal-carrusel-track" id="mtrack-${aid}" style="transform:translateX(-${cur*100}%)">
+                        ${media.map(slideH).join("")}
+                    </div>
+                </div>
+                ${multi?`<div class="modal-thumbs">${media.map(thumbH).join("")}</div>`:""}
+            </div>`:""}
+
+            <div class="modal-content-area">
+                <h1 class="modal-title">${act.title}</h1>
+                <div class="modal-meta">
+                    <span class="modal-date">📅 ${act.date||getDate()}</span>
+                    <div class="modal-share">
+                        <button class="share-btn fb" onclick="shareFB(getShareUrl('${esc(act.id)}'))">📘 Facebook</button>
+                        <button class="share-btn wa" onclick="shareWA('${esc(act.title)}',getShareUrl('${esc(act.id)}'))">📱 WhatsApp</button>
+                        <button class="share-btn cp" onclick="copyLink('${esc(act.id)}')">🔗 Copiar link</button>
+                    </div>
+                </div>
+                <div class="copy-ok" id="copy-ok">✓ Link copiado al portapapeles</div>
+                <div class="modal-description">${act.description}</div>
+            </div>
+        </div>
+
+      </div>
+    </div>`;
+};
+
+// =============================================
+// ADMIN — COMPONENTES
+// =============================================
+const RichEditor = (html) => `
+    <div class="rich-editor-wrapper">
+        <div class="rich-toolbar">
+            <button type="button" class="toolbar-btn" onclick="richFormat('bold')"><b>N</b></button>
+            <button type="button" class="toolbar-btn" onclick="richFormat('italic')"><i>C</i></button>
+            <button type="button" class="toolbar-btn" onclick="richFormat('underline')"><u>S</u></button>
+            <button type="button" class="toolbar-btn" onclick="richFormat('insertUnorderedList')">• Lista</button>
+            <div class="toolbar-sep"></div>
+            <button type="button" class="toolbar-btn img-btn" onclick="richInsertImg('chica')">📷 Chica</button>
+            <button type="button" class="toolbar-btn img-btn" onclick="richInsertImg('mediana')">📷 Mediana</button>
+            <button type="button" class="toolbar-btn img-btn" onclick="richInsertImg('grande')">📷 Grande</button>
+        </div>
+        <div id="richEditor" contenteditable="true">${html||""}</div>
+    </div>`;
+
+const AdminLogin = () => `
+    <div class="admin-login">
+        <div class="login-container">
+            <h1>Acceso Admin</h1>
+            <form onsubmit="handleLogin(event)">
+                <input type="text"     id="uname" placeholder="Usuario"    required autocomplete="username">
+                <input type="password" id="upass" placeholder="Contraseña" required autocomplete="current-password">
+                <div class="login-error" id="login-err">Credenciales incorrectas</div>
+                <button type="submit">Ingresar</button>
+            </form>
+        </div>
+    </div>`;
+
+const AdminFotosPanel = () => `
+    <div class="admin-card">
+        <h2>Galería de Fotos <span class="activity-count">${fotosCarrusel.length}/${MAX_FOTO}</span></h2>
+        ${fotosCarrusel.length>=MAX_FOTO
+            ? '<div class="admin-alert warn">Máximo de 15 fotos alcanzado.</div>'
+            : `<div style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;">
+                   <button class="btn-admin verde" onclick="subirFotoDesdeArchivo()">📁 Subir desde mi PC</button>
+                   <button class="btn-admin azul"  onclick="subirFotoGaleria()">🔗 Agregar por URL</button>
+               </div>
+               <p class="hint" style="margin-bottom:.8rem;">
+                   <b>Desde PC:</b> seleccioná una imagen (máx. 600 KB).
+                   <b>Por URL:</b> subí la foto a <a href="https://imgbb.com" target="_blank" style="color:var(--azul);">imgbb.com</a> y pegá el link.
+               </p>`}
+        <div class="fotos-grid">
+            ${fotosCarrusel.map((f,i)=>`
+                <div class="foto-item">
+                    <img src="${f.url}" alt="${f.titulo}" loading="lazy">
+                    <div class="foto-info">
+                        <input type="text" id="ftit-${f.id}" value="${f.titulo}" placeholder="Título">
+                        <div class="foto-actions">
+                            <button onclick="actualizarFoto('${f.id}',document.getElementById('ftit-${f.id}').value)" style="background:var(--verde);color:white;">💾</button>
+                            <button onclick="eliminarFoto('${f.id}')" style="background:var(--rojo);color:white;">🗑️</button>
+                        </div>
+                        <div class="foto-order">
+                            ${i>0?`<button onclick="moverFoto('${f.id}','arriba')">⬆️</button>`:""}
+                            ${i<fotosCarrusel.length-1?`<button onclick="moverFoto('${f.id}','abajo')">⬇️</button>`:""}
+                        </div>
+                    </div>
+                </div>`).join("")}
+        </div>
+    </div>`;
+
+const AdminPanel = () => {
+    const canAdd = activities.length<MAX_ACT||editingActivity;
+    if(editingActivity&&editingActivity.media&&!mediaList.length) mediaList=[...editingActivity.media];
+    return `
+    <div class="admin-panel">
+        <div class="admin-header">
+            <h1>Panel de Administración · Partido Justicialista</h1>
+            <div class="admin-header-btns">
+                <button class="btn-admin gris" onclick="navigateTo('home')">← Volver al sitio</button>
+                <button class="btn-admin azul" onclick="window.location.hash=''">👁 Ver página</button>
+            </div>
+        </div>
+        <div class="admin-tabs">
+            <button class="admin-tab ${adminTab==="actividades"?"active":""}" onclick="setAdminTab('actividades')">📝 Actividades</button>
+            <button class="admin-tab ${adminTab==="fotos"?"active":""}"       onclick="setAdminTab('fotos')">🖼️ Galería</button>
+        </div>
+
+        ${adminTab==="actividades"?`
+        <div class="admin-content">
+            <div class="admin-card">
+                <h2>${editingActivity?"✏️ Editar":"➕ Nueva actividad"}</h2>
+                ${!canAdd&&!editingActivity?`<div class="admin-alert warn">Máximo ${MAX_ACT} actividades. Eliminá alguna para agregar más.</div>`:""}
+                <form onsubmit="handleActivitySubmit(event)">
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" id="actTitle" value="${editingActivity?esc(editingActivity.title):""}" placeholder="Título de la actividad" required ${!canAdd?"disabled":""}>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        ${RichEditor(editingActivity?editingActivity.description:"")}
+                    </div>
+                    <div class="media-section">
+                        <h3>📎 Fotos y Videos</h3>
+                        <p class="hint" style="margin-bottom:.7rem;">
+                            Agregá URLs de imágenes (<a href="https://imgbb.com" target="_blank" style="color:var(--azul);">imgbb.com</a> es gratis)
+                            o links de YouTube.<br>La primera imagen es la que se ve en la tarjeta.
+                        </p>
+                        <div class="media-preview-grid" id="mediaPreview">
+                            ${mediaList.map((m,i)=>m.type==="video"
+                                ?`<div class="media-preview-item is-video" style="position:relative;">
+                                      ${m.thumb?`<img src="${m.thumb}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:.5;">`:""}
+                                      <span style="position:relative;z-index:1;">▶</span>
+                                      <button class="media-remove-btn" onclick="removeMedia(${i})">✕</button>
+                                  </div>`
+                                :`<div class="media-preview-item">
+                                      <img src="${m.url}" alt="media">
+                                      <button class="media-remove-btn" onclick="removeMedia(${i})">✕</button>
+                                  </div>`).join("")}
+                        </div>
+                        <button type="button" class="media-add-btn" onclick="addMediaUrl()" ${!canAdd?"disabled":""}>
+                            ➕ Agregar foto o video (URL)
+                        </button>
+                    </div>
+                    ${canAdd?`<button type="submit" class="btn-admin verde" style="width:100%;padding:.75rem;font-size:.95rem;margin-top:.3rem;">${editingActivity?"💾 Actualizar":"✅ Guardar actividad"}</button>`:""}
+                    ${editingActivity?`<button type="button" class="btn-admin gris2" style="width:100%;padding:.7rem;margin-top:.5rem;" onclick="cancelEdit()">Cancelar</button>`:""}
+                </form>
+            </div>
+            <div class="admin-card">
+                <h2>Publicadas <span class="activity-count">${activities.length}/${MAX_ACT}</span></h2>
+                <div class="activities-list-scroll">
+                    ${activities.length===0
+                        ?'<p style="color:var(--texto-suave);text-align:center;padding:2rem;">No hay actividades cargadas</p>'
+                        :activities.map(a=>{
+                            const fm=a.media&&a.media.length>0?a.media[0]:null;
+                            const ts=fm?(fm.type==="video"?fm.thumb:fm.url):(a.image||"");
+                            const isVid=fm&&fm.type==="video";
+                            return `
+                            <div class="admin-activity-item">
+                                ${isVid
+                                    ?`<div class="admin-activity-thumb-video">${ts?`<img src="${ts}" style="width:100%;height:100%;object-fit:cover;opacity:.6;border-radius:6px;">`:"▶"}</div>`
+                                    :`<img src="${ts||""}" alt="${esc(a.title)}" loading="lazy">`}
+                                <div class="admin-act-info">
+                                    <h3>${a.title}</h3>
+                                    <p>${stripHtml(a.description).substring(0,55)}…</p>
+                                    <small style="color:var(--celeste);">${a.date||""}</small>
+                                    ${a.media&&a.media.length>1?`<br><small style="color:var(--verde);">📎 ${a.media.length} elementos</small>`:""}
+                                </div>
+                                <div class="admin-act-actions">
+                                    <button class="btn-admin warn" onclick="editActivityAdmin('${a.id}')">✏️</button>
+                                    <button class="btn-admin rojo" onclick="deleteActivityAdmin('${a.id}')">🗑️</button>
+                                </div>
+                            </div>`;}).join("")}
+                </div>
+            </div>
+        </div>`:AdminFotosPanel()}
+    </div>`;
+};
+
+// =============================================
+// AUTH
+// =============================================
+window.handleLogin = (e) => {
+    e.preventDefault();
+    const u=document.getElementById("uname").value;
+    const p=document.getElementById("upass").value;
+    if(u==="admin"&&p==="pjq2024"){ isAuthenticated=true; render(); }
+    else { const err=document.getElementById("login-err"); if(err) err.style.display="block"; }
+};
+
+// =============================================
+// RENDER
+// =============================================
+const render = () => {
+    if (currentPage==="admin") {
+        $app.innerHTML = isAuthenticated?AdminPanel():AdminLogin();
+        if(isAuthenticated&&adminTab==="actividades")
+            setTimeout(()=>{ if(editingActivity) setEditor(editingActivity.description); },60);
+    } else {
+        const sel=getActFromHash();
+        $app.innerHTML=`<div>
+            ${Navbar()}${Hero()}${OrgInfo()}
+            ${ActivitiesSection()}${GaleriaSection()}
+            ${ContactSection()}${Footer()}
+            ${sel?ActivityModal(sel):""}
+        </div>`;
+    }
+    setTimeout(()=>{ updateMainCar(); if(currentPage!=="admin") startAutoSlide(); },100);
+};
+
+window.addEventListener("hashchange",()=>{
+    const h=window.location.hash;
+    if(!h.startsWith("#actividad-")) render();
+    else { if(currentPage==="admin") currentPage="home"; render(); }
+});
+
+Promise.all([loadActivities(), loadFotos()]);
+</script>
+</body>
+</html>
